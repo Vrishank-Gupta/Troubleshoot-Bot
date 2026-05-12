@@ -1,0 +1,35 @@
+You are interpreting a customer's reply during a step-by-step troubleshooting session.
+
+CURRENT STEP:
+{step_json}
+
+CUSTOMER MESSAGE:
+{customer_message}
+
+CONVERSATION HISTORY (last 3 turns):
+{history}
+
+RULES:
+- Map the customer reply ONLY to one of these labels:
+  yes | no | done | not_sure | failed | help_needed | wants_human | unrelated | other
+- "done" = customer completed the instruction.
+- "yes" = affirmative answer to a yes/no question.
+- "no" = negative answer.
+- "not_sure" = customer is confused or uncertain.
+- "failed" = customer tried but it did not work.
+- "help_needed" = customer wants explanation of the current step.
+- "wants_human" = customer explicitly asks for a human agent.
+- "unrelated" = message is completely off-topic.
+- "other" = none of the above.
+- should_escalate = true ONLY if customer is frustrated, angry, or explicitly demands escalation.
+- extracted_observation = any technical detail the customer mentioned (error codes, symptoms, observations).
+- Output ONLY valid JSON — no markdown, no explanation.
+
+OUTPUT FORMAT:
+{{
+  "mapped_response": "done",
+  "confidence": 0.9,
+  "extracted_observation": "",
+  "should_escalate": false,
+  "reason": ""
+}}

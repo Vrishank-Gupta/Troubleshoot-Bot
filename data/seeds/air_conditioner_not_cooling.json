@@ -1,0 +1,132 @@
+{
+  "sop_id": "ac-not-cooling",
+  "title": "Air Conditioner — Not Cooling",
+  "product": {
+    "name": "Air Conditioner",
+    "category": "Home Appliances",
+    "model_aliases": ["AC", "A/C", "air conditioner", "split AC", "window AC", "air conditioning unit"]
+  },
+  "issue": {
+    "name": "AC Not Cooling",
+    "category": "Cooling",
+    "symptom_phrases": [
+      "AC not cooling", "air conditioner not cooling", "AC blowing warm air",
+      "AC not cold", "room not cooling", "AC running but no cold air",
+      "AC on but hot", "AC cooling problem", "AC not working properly"
+    ],
+    "negative_phrases": ["AC not turning on", "AC making noise"]
+  },
+  "prerequisites": [
+    "AC is powered on and running",
+    "Know AC model and age"
+  ],
+  "entry_conditions": ["AC is on but not producing cold air"],
+  "steps": [
+    {
+      "id": "step_1",
+      "type": "check",
+      "customer_message": "Is your AC set to 'Cool' mode (not 'Fan only' or 'Dry' mode)?",
+      "agent_notes": "Many users accidentally leave AC in fan or dry mode.",
+      "expected_responses": ["yes", "no", "not_sure"],
+      "response_buttons": ["Yes, it's on Cool mode", "No / Not sure"],
+      "on_yes": "step_2",
+      "on_no": "step_1_fix",
+      "on_not_sure": "step_1_fix",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_1_fix",
+      "type": "instruction",
+      "customer_message": "On your remote, press the 'Mode' button until the display shows a snowflake ❄️ or the word 'Cool'. Then set the temperature to 24°C or lower. Done?",
+      "agent_notes": "Set to cool mode.",
+      "expected_responses": ["done", "yes"],
+      "response_buttons": ["Done"],
+      "on_done": "step_2",
+      "on_yes": "step_2",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2",
+      "type": "check",
+      "customer_message": "Is the AC's air filter clean? A dirty filter is a very common reason for poor cooling. When did you last clean the filter?",
+      "agent_notes": "Dirty filter is the most common cause of poor cooling.",
+      "expected_responses": ["yes", "no", "not_sure"],
+      "response_buttons": ["Filter is clean (cleaned recently)", "It's been a while / not sure"],
+      "on_yes": "step_3",
+      "on_no": "step_2_clean",
+      "on_not_sure": "step_2_clean",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2_clean",
+      "type": "instruction",
+      "customer_message": "Let's clean the filter. Turn off the AC. Open the front panel of the indoor unit — it usually lifts up. Pull out the filter (it looks like a mesh screen). Rinse it under running water and let it dry. Put it back and turn the AC on. Let me know once done.",
+      "agent_notes": "Filter cleaning procedure.",
+      "expected_responses": ["done"],
+      "response_buttons": ["Done, filter cleaned"],
+      "on_done": "step_3",
+      "retry_limit": 0,
+      "safety_note": "Make sure the AC is OFF before opening the front panel.",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_3",
+      "type": "check",
+      "customer_message": "After 15-20 minutes of running, is the AC cooling better now?",
+      "agent_notes": "Give time for AC to cool the room after filter clean.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, it's cooling better!", "No, still not cold"],
+      "on_yes": "resolved",
+      "on_no": "step_4",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_4",
+      "type": "check",
+      "customer_message": "Is the outdoor unit (the box on the outside wall) running? You should hear it and feel warm air coming from it.",
+      "agent_notes": "Check if compressor is working.",
+      "expected_responses": ["yes", "no", "not_sure"],
+      "response_buttons": ["Yes, outdoor unit is running", "No / I can't check"],
+      "on_yes": "escalate_gas",
+      "on_no": "escalate_compressor",
+      "on_not_sure": "escalate_gas",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    }
+  ],
+  "terminal_states": [
+    {
+      "id": "resolved",
+      "type": "resolved",
+      "message": "That's great! Your AC is cooling properly now. Regular filter cleaning every 2-4 weeks will keep it running well. Let us know if you need anything else!"
+    },
+    {
+      "id": "escalate_gas",
+      "type": "escalation",
+      "message": "It sounds like your AC may be low on refrigerant gas. This requires a trained technician. I'm arranging a service call for you."
+    },
+    {
+      "id": "escalate_compressor",
+      "type": "escalation",
+      "message": "The outdoor unit doesn't appear to be running, which could indicate a compressor issue. I'm connecting you with our service team to arrange a technician visit."
+    }
+  ],
+  "escalation_conditions": [
+    "Outdoor unit not running",
+    "Issue persists after filter cleaning and mode change"
+  ],
+  "version": 1,
+  "status": "published",
+  "source_file": "seed_air_conditioner_not_cooling.json",
+  "created_at": "2026-05-11T00:00:00Z",
+  "inferred_structure": false
+}

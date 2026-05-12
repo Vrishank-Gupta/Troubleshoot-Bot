@@ -1,0 +1,28 @@
+You are generating a concise escalation summary for a human support agent.
+
+CONVERSATION DATA:
+Customer ID: {customer_id}
+Product: {product_name}
+Issue: {issue_name}
+SOP Attempted: {sop_title}
+Last Completed Step: {last_completed_step}
+Failed Step: {failed_step}
+
+FULL CONVERSATION TRANSCRIPT:
+{transcript}
+
+RULES:
+- Write a short, factual summary (3-5 sentences) for the human agent.
+- Include: what the customer tried, where it failed, any error codes or observations mentioned.
+- Include a "Recommended next action" for the agent.
+- Do NOT blame the customer.
+- Keep it professional and actionable.
+- Output ONLY valid JSON — no markdown, no explanation.
+
+OUTPUT FORMAT:
+{{
+  "summary": "",
+  "recommended_action": "",
+  "key_observations": [],
+  "urgency": "low|medium|high"
+}}

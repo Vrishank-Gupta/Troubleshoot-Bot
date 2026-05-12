@@ -1,0 +1,167 @@
+{
+  "sop_id": "wifi-router-no-internet",
+  "title": "Wi-Fi Router — No Internet Connection",
+  "product": {
+    "name": "Wi-Fi Router",
+    "category": "Networking",
+    "model_aliases": ["router", "wireless router", "WiFi router", "home router"]
+  },
+  "issue": {
+    "name": "No Internet Connection",
+    "category": "Connectivity",
+    "symptom_phrases": [
+      "no internet", "wifi not working", "internet not working",
+      "router not connecting", "no connection", "internet down",
+      "no network", "wifi disconnected", "internet stopped working"
+    ],
+    "negative_phrases": ["slow internet", "speed issue"]
+  },
+  "prerequisites": [
+    "Have access to the router's power cable",
+    "Know the location of the router"
+  ],
+  "entry_conditions": [
+    "Customer reports no internet connectivity"
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "type": "instruction",
+      "customer_message": "Let's start with a simple restart. Please turn off your router by unplugging the power cable from the wall socket. Wait 30 seconds, then plug it back in. Once the lights are stable, let me know.",
+      "agent_notes": "Power cycle resolves most transient connectivity issues.",
+      "expected_responses": ["done", "yes", "not_sure", "failed"],
+      "response_buttons": ["Done, lights are stable", "Not sure what to do", "Tried but still no internet"],
+      "on_done": "step_2",
+      "on_yes": "step_2",
+      "on_not_sure": "step_1_help",
+      "on_failed": "step_3",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_1_help",
+      "type": "instruction",
+      "customer_message": "No problem! The power cable is the thick cable going into the back of your router. Unplug it from the wall (not from the router). Wait 30 seconds, then plug it back in. The router lights will blink, then settle. Once stable — usually 1-2 minutes — let me know!",
+      "agent_notes": "Clarification step for confused users.",
+      "expected_responses": ["done", "yes", "not_sure", "failed"],
+      "response_buttons": ["Done!", "Still not working"],
+      "on_done": "step_2",
+      "on_yes": "step_2",
+      "on_not_sure": "escalate_1",
+      "on_failed": "step_3",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2",
+      "type": "check",
+      "customer_message": "Great! Now check on your phone or computer — can you see your Wi-Fi network name in the available networks list?",
+      "agent_notes": "Verify SSID is broadcasting before checking connectivity.",
+      "expected_responses": ["yes", "no", "not_sure"],
+      "response_buttons": ["Yes, I can see my network", "No, I don't see it", "Not sure"],
+      "on_yes": "step_4",
+      "on_no": "step_3",
+      "on_not_sure": "step_2_help",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2_help",
+      "type": "instruction",
+      "customer_message": "On your phone, go to Settings → Wi-Fi (or Wireless). You should see a list of available networks. Look for your home network name. Do you see it?",
+      "agent_notes": "Guide customer to Wi-Fi settings.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, I see it", "No, I don't see it"],
+      "on_yes": "step_4",
+      "on_no": "step_3",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_3",
+      "type": "check",
+      "customer_message": "Let's check the lights on your router. Is there a light labelled 'Internet' or 'WAN'? What colour is it — green, orange, or is it off?",
+      "agent_notes": "WAN/Internet LED indicates physical link to ISP.",
+      "expected_responses": ["yes", "no", "other"],
+      "response_buttons": ["Green / blinking green", "Orange or red", "No Internet light / it's off"],
+      "on_yes": "step_4",
+      "on_no": "escalate_isp",
+      "on_other": "escalate_isp",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_4",
+      "type": "instruction",
+      "customer_message": "Please connect your device to your Wi-Fi network and try opening a website like google.com. Does the page load?",
+      "agent_notes": "Final connectivity check.",
+      "expected_responses": ["yes", "no", "done"],
+      "response_buttons": ["Yes, it works!", "No, still not loading"],
+      "on_yes": "resolved",
+      "on_done": "resolved",
+      "on_no": "step_5",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_5",
+      "type": "instruction",
+      "customer_message": "Let's try one more thing. On the back of your router, there should be a small 'Reset' button (usually requires a pin). Hold it for 10 seconds until the lights blink. **Note:** This will reset your Wi-Fi password to the factory default, printed on a sticker on the router. Shall we try this?",
+      "agent_notes": "Factory reset as last self-service step. Warn about password reset.",
+      "expected_responses": ["yes", "no", "done"],
+      "response_buttons": ["Yes, I'll try the reset", "No, I don't want to reset"],
+      "on_yes": "step_5_done",
+      "on_done": "step_5_done",
+      "on_no": "escalate_1",
+      "retry_limit": 0,
+      "safety_note": "This will erase all custom Wi-Fi settings. Note your current Wi-Fi password before proceeding.",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_5_done",
+      "type": "check",
+      "customer_message": "After the reset and router restart, check if the internet is working now. Try opening a website.",
+      "agent_notes": "Post-reset connectivity check.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, it works now!", "No, still not working"],
+      "on_yes": "resolved",
+      "on_no": "escalate_1",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    }
+  ],
+  "terminal_states": [
+    {
+      "id": "resolved",
+      "type": "resolved",
+      "message": "That's great news! Your internet connection is back. If you need help again, feel free to chat with us anytime."
+    },
+    {
+      "id": "escalate_1",
+      "type": "escalation",
+      "message": "I've logged everything we tried and am connecting you with a support specialist who can help further. They'll be in touch shortly."
+    },
+    {
+      "id": "escalate_isp",
+      "type": "escalation",
+      "message": "It looks like there may be an issue with your internet service provider's connection to your router. I'm escalating this so our team can coordinate with your ISP. Hold on!"
+    }
+  ],
+  "escalation_conditions": [
+    "Internet LED is off or orange after restart",
+    "Reset did not resolve the issue",
+    "Customer unable to follow steps"
+  ],
+  "version": 1,
+  "status": "published",
+  "source_file": "seed_wifi_router_no_internet.json",
+  "created_at": "2026-05-11T00:00:00Z",
+  "inferred_structure": false
+}

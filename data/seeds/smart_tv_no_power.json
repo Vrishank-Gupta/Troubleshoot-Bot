@@ -1,0 +1,145 @@
+{
+  "sop_id": "smart-tv-no-power",
+  "title": "Smart TV — Won't Turn On",
+  "product": {
+    "name": "Smart TV",
+    "category": "Consumer Electronics",
+    "model_aliases": ["television", "TV", "smart television", "LED TV"]
+  },
+  "issue": {
+    "name": "TV Won't Turn On",
+    "category": "Power",
+    "symptom_phrases": [
+      "TV won't turn on", "TV not switching on", "TV not starting",
+      "TV dead", "TV no power", "TV screen black", "TV not powering up",
+      "TV not responding to remote"
+    ],
+    "negative_phrases": ["no picture", "no sound", "blank screen with sound"]
+  },
+  "prerequisites": [
+    "Access to the TV's power outlet",
+    "TV remote control"
+  ],
+  "entry_conditions": ["Customer reports TV will not turn on"],
+  "steps": [
+    {
+      "id": "step_1",
+      "type": "check",
+      "customer_message": "Let's check the basics first. Is the TV's power cable firmly plugged into the wall socket, and is the wall socket switched on?",
+      "agent_notes": "Loose power cable is a very common cause.",
+      "expected_responses": ["yes", "no", "not_sure"],
+      "response_buttons": ["Yes, it's plugged in and switched on", "No / not sure"],
+      "on_yes": "step_2",
+      "on_no": "step_1_fix",
+      "on_not_sure": "step_1_fix",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_1_fix",
+      "type": "instruction",
+      "customer_message": "Please make sure the power cable is firmly inserted into the back of the TV and into the wall socket. Also, check that the wall socket is switched on. Let me know once done.",
+      "agent_notes": "Guide customer to verify power.",
+      "expected_responses": ["done", "yes"],
+      "response_buttons": ["Done"],
+      "on_done": "step_2",
+      "on_yes": "step_2",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2",
+      "type": "check",
+      "customer_message": "Is there a standby light (usually red or orange) visible on the TV?",
+      "agent_notes": "Standby LED indicates power reaching the TV.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, there's a standby light", "No light at all"],
+      "on_yes": "step_3",
+      "on_no": "step_2_no_light",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_2_no_light",
+      "type": "instruction",
+      "customer_message": "No standby light means the TV isn't getting power. Please try a different wall socket with a working appliance (like a phone charger) to confirm the socket is working. Then plug the TV into that socket. Does the standby light appear now?",
+      "agent_notes": "Distinguish between dead socket and dead TV.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, standby light appeared", "No, still no light"],
+      "on_yes": "step_3",
+      "on_no": "escalate_hardware",
+      "retry_limit": 0,
+      "safety_note": "Do not attempt to open or repair the power supply unit.",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_3",
+      "type": "instruction",
+      "customer_message": "The TV has power but isn't turning on from standby. Try pressing the power button **directly on the TV** (not the remote) once. Does it turn on?",
+      "agent_notes": "Remote could be the issue — test direct power button.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, it turned on!", "No, nothing happened"],
+      "on_yes": "step_remote_issue",
+      "on_no": "step_4",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_remote_issue",
+      "type": "instruction",
+      "customer_message": "The TV works! The issue is likely with your remote. Please replace the remote batteries and try again. Does the remote work now?",
+      "agent_notes": "Remote battery or sensor issue.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, remote works now!", "No, remote still not working"],
+      "on_yes": "resolved",
+      "on_no": "escalate_remote",
+      "retry_limit": 0,
+      "safety_note": "",
+      "requires_attachment": false
+    },
+    {
+      "id": "step_4",
+      "type": "instruction",
+      "customer_message": "Let's try a soft reset. Unplug the TV from the wall socket and wait 60 seconds (this fully discharges it). Then plug it back in and try turning it on. Did it turn on?",
+      "agent_notes": "Capacitor discharge reset.",
+      "expected_responses": ["yes", "no"],
+      "response_buttons": ["Yes, it's on now!", "No, still not working"],
+      "on_yes": "resolved",
+      "on_no": "escalate_hardware",
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    }
+  ],
+  "terminal_states": [
+    {
+      "id": "resolved",
+      "type": "resolved",
+      "message": "Excellent! Your TV is working again. Let us know if you need any more help!"
+    },
+    {
+      "id": "escalate_hardware",
+      "type": "escalation",
+      "message": "This looks like it may need a hardware inspection. I'm connecting you with our service team to arrange a technician visit."
+    },
+    {
+      "id": "escalate_remote",
+      "type": "escalation",
+      "message": "Your TV works but the remote needs to be looked at. I'm connecting you with our team who can assist with a remote replacement."
+    }
+  ],
+  "escalation_conditions": [
+    "No power even after socket change",
+    "Soft reset did not resolve",
+    "TV button does not respond"
+  ],
+  "version": 1,
+  "status": "published",
+  "source_file": "seed_smart_tv_no_power.json",
+  "created_at": "2026-05-11T00:00:00Z",
+  "inferred_structure": false
+}

@@ -1,0 +1,21 @@
+You are helping narrow down which troubleshooting SOP to use.
+
+CUSTOMER MESSAGE:
+{customer_message}
+
+KNOWN PRODUCT: {known_product}
+
+TOP CANDIDATE SOPs:
+{candidates}
+
+RULES:
+- Ask exactly ONE clarifying question to distinguish between the candidates.
+- The question must be simple, friendly, and require a short answer.
+- Do NOT reveal internal SOP IDs or technical names.
+- Do NOT ask multiple questions at once.
+- Output ONLY valid JSON — no markdown, no explanation.
+
+OUTPUT FORMAT:
+{{
+  "clarification_question": ""
+}}

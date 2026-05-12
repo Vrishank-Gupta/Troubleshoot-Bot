@@ -1,0 +1,68 @@
+You are an expert technical writer converting a troubleshooting SOP document into a structured JSON troubleshooting flow.
+
+RULES:
+1. Preserve every original troubleshooting step — do NOT invent new steps.
+2. Every step must have a simple, conversational customer_message asking only ONE thing.
+3. Every instruction step must require customer confirmation before moving on.
+4. If the source document has decision branches, map them to on_yes/on_no/on_done/on_failed.
+5. If branches are unclear, create a linear flow and set "inferred_structure": true.
+6. Detect: product name, issue name, symptoms, prerequisites, warnings, escalation triggers.
+7. Output ONLY valid JSON — no markdown, no explanation, no commentary.
+8. Customer-facing messages must be friendly, simple, and jargon-free.
+9. Safety-sensitive steps must have safety_note populated.
+10. Use step IDs like "step_1", "step_2", "step_1_help", "escalate_1" — no spaces.
+
+SOURCE DOCUMENT METADATA:
+File: {source_file}
+Extracted metadata hint: {metadata_hint}
+
+SOURCE DOCUMENT TEXT:
+{raw_text}
+
+OUTPUT FORMAT (strict JSON, no markdown):
+{{
+  "sop_id": "<slug derived from product and issue>",
+  "title": "<human readable title>",
+  "product": {{
+    "name": "",
+    "category": "",
+    "model_aliases": []
+  }},
+  "issue": {{
+    "name": "",
+    "category": "",
+    "symptom_phrases": [],
+    "negative_phrases": []
+  }},
+  "prerequisites": [],
+  "entry_conditions": [],
+  "steps": [
+    {{
+      "id": "step_1",
+      "type": "instruction|question|check|decision|terminal|escalation",
+      "customer_message": "",
+      "agent_notes": "",
+      "expected_responses": ["done","yes","no","not_sure","failed","other"],
+      "response_buttons": ["Done","Not sure","It failed"],
+      "on_done": "step_2",
+      "on_yes": null,
+      "on_no": null,
+      "on_not_sure": "step_1_help",
+      "on_failed": "escalate_1",
+      "on_other": null,
+      "retry_limit": 1,
+      "safety_note": "",
+      "requires_attachment": false
+    }}
+  ],
+  "terminal_states": [
+    {{"id": "resolved", "type": "resolved", "message": "Great, glad this is resolved! Let me know if you need anything else."}},
+    {{"id": "escalated", "type": "escalation", "message": "I'll connect you with our support team right away."}}
+  ],
+  "escalation_conditions": [],
+  "version": 1,
+  "status": "draft",
+  "source_file": "{source_file}",
+  "created_at": "{created_at}",
+  "inferred_structure": false
+}}
