@@ -50,50 +50,104 @@ def _slugify(text: str) -> str:
 
 # ── Main pipeline ───────────────────────────────────────────────────────────
 
+def _cached_json_path(file_path: Path) -> Path | None:
+    """Return path to already-parsed JSON if it exists on disk, else None."""
+    slug = _slugify(file_path.stem)
+    candidate = PARSED_SOPS_DIR / f"{slug}.json"
+    return candidate if candidate.exists() else None
+
+
+def check_already_ingested(file_path: Path, db: Session) -> SopFlow | None:
+    """Return existing SopFlow if this filename was already ingested, else None."""
+    return db.query(SopFlow).filter(SopFlow.source_file == file_path.name).first()
+
+
 async def ingest_file(
     file_path: str | Path,
     db: Session,
     auto_publish: bool = False,
+    force: bool = False,
 ) -> dict[str, Any]:
+    """Ingest a single SOP document.
+
+    Skip logic (unless force=True):
+    - If already in DB by source filename → return immediately (no LLM call).
+    - If parsed JSON already exists on disk → load it instead of calling LLM again.
+    """
     file_path = Path(file_path)
     logger.info("Ingesting %s", file_path.name)
 
-    # 1. Extract text
-    raw_text = extract_text(file_path)
-    if not raw_text.strip():
-        raise ValueError(f"No text extracted from {file_path.name}")
+    # ── Skip: already in DB ──────────────────────────────────────────────────
+    if not force:
+        existing = check_already_ingested(file_path, db)
+        if existing:
+            return {
+                "sop_id": existing.sop_slug,
+                "db_id": existing.id,
+                "title": existing.title,
+                "status": existing.status,
+                "review_report": {},
+                "parsed_file": str(PARSED_SOPS_DIR / f"{existing.sop_slug}.json"),
+                "skipped": True,
+                "skip_reason": "already_in_db",
+            }
 
-    # 2. Parse with LLM
-    flow_dict = await parse_sop_to_flow(
-        raw_text=raw_text,
-        source_file=file_path.name,
-        metadata_hint=f"filename={file_path.name}",
-    )
+    # ── Try cached parsed JSON first (saves LLM call on re-runs) ────────────
+    flow_dict: dict | None = None
+    llm_used = True
 
-    if "error" in flow_dict:
-        raise RuntimeError(f"LLM parsing failed: {flow_dict.get('raw','')[:300]}")
+    if not force:
+        cached_path = _cached_json_path(file_path)
+        if cached_path:
+            try:
+                flow_dict = json.loads(cached_path.read_text(encoding="utf-8"))
+                llm_used = False
+                logger.info("Using cached parsed JSON: %s", cached_path.name)
+            except Exception:
+                flow_dict = None  # corrupted cache — fall through to LLM
 
-    # Ensure required fields
+    # ── Extract text ─────────────────────────────────────────────────────────
+    if flow_dict is None:
+        raw_text = extract_text(file_path)
+        if not raw_text.strip():
+            raise ValueError(
+                f"No text could be extracted from '{file_path.name}'. "
+                "The file may be a scanned image PDF with no selectable text."
+            )
+
+        # ── Parse with LLM ───────────────────────────────────────────────────
+        flow_dict = await parse_sop_to_flow(
+            raw_text=raw_text,
+            source_file=file_path.name,
+            metadata_hint=f"filename={file_path.name}",
+        )
+
+        if "error" in flow_dict:
+            raise RuntimeError(
+                f"LLM failed to parse '{file_path.name}': {flow_dict.get('raw', '')[:400]}"
+            )
+
+    # ── Ensure required fields ───────────────────────────────────────────────
     if not flow_dict.get("sop_id"):
         flow_dict["sop_id"] = _slugify(flow_dict.get("title", file_path.stem))
     flow_dict["source_file"] = file_path.name
-    flow_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+    flow_dict.setdefault("created_at", datetime.now(timezone.utc).isoformat())
     if auto_publish:
         flow_dict["status"] = "published"
 
-    # 3. Validate
+    # ── Validate ─────────────────────────────────────────────────────────────
     sop = SopFlowSchema(**flow_dict)
     review = validate_and_report(sop)
 
-    # 4. Save parsed JSON to disk
+    # ── Save parsed JSON to disk ─────────────────────────────────────────────
     out_path = PARSED_SOPS_DIR / f"{sop.sop_id}.json"
     out_path.write_text(json.dumps(flow_dict, indent=2, ensure_ascii=False), encoding="utf-8")
     logger.info("Saved parsed SOP to %s", out_path)
 
-    # 5. Upsert to database
+    # ── Upsert to database ───────────────────────────────────────────────────
     sop_id = await _upsert_to_db(sop, db)
 
-    # 6. Generate and store embeddings
+    # ── Generate and store embeddings ────────────────────────────────────────
     await _store_embeddings(sop, sop_id, db)
 
     return {
@@ -103,6 +157,8 @@ async def ingest_file(
         "status": sop.status,
         "review_report": review,
         "parsed_file": str(out_path),
+        "skipped": False,
+        "llm_used": llm_used,
     }
 
 
